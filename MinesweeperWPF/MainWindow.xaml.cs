@@ -1,22 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.Common;
-using System.Drawing;
-using System.Linq;
-using System.Reflection;
-using System.Reflection.Emit;
-using System.Security.Policy;
-using System.Text.RegularExpressions;
+﻿using MinesweeperWPF.Model;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-using System.Windows.Media.Imaging;
-using MinesweeperWPF.Model;
-using static System.Reflection.Metadata.BlobBuilder;
-using Label = System.Windows.Controls.Label;
-using Point = System.Windows.Point;
 
 namespace MinesweeperWPF
 {

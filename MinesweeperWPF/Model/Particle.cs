@@ -1,30 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Media;
 
 namespace MinesweeperWPF.Model
 {
     public class Particle : INotifyPropertyChanged
     {
-        private double velocityX = 0;
-        private double velocityY = 0;
-        private double _positionX = 0;
-        private double _positionY = 0;
-        private double sizeDec = 5;
-        private double _size = 10;
-        private double gravity = 600;
-        private double jumpForce = -100;
-        private Stopwatch stopwatch = new Stopwatch();
-        private double lastFrameTime = 0;
-        private double _rotationAngle = 0;
-        private double _centerX = 0;
+        protected double velocityX = 0;
+        protected double velocityY = 0;
+        protected double _positionX = 0;
+        protected double _positionY = 0;
+        protected double sizeDec = 5;
+        protected double _size = 10;
+        protected double gravity = 600;
+        protected double jumpForce = -100;
+        protected Stopwatch stopwatch = new Stopwatch();
+        protected double lastFrameTime = 0;
+        protected double _rotationAngle = 0;
+        protected double _centerX = 0;
         public double CenterX
         {
             get => _centerX;
@@ -34,7 +28,7 @@ namespace MinesweeperWPF.Model
                 OnPropertyChanged(nameof(CenterX));
             }
         }
-        private double _centerY = 0;
+        protected double _centerY = 0;
         public double CenterY
         {
             get => _centerY;
@@ -53,7 +47,7 @@ namespace MinesweeperWPF.Model
                 OnPropertyChanged(nameof(RotationAngle));
             }
         }
-        private double _rotationSpeed = 50;
+        protected double _rotationSpeed = 50;
 
         public event PropertyChangedEventHandler? PropertyChanged;
         public event Action<Particle>? OnParticleExpired;
@@ -89,7 +83,7 @@ namespace MinesweeperWPF.Model
                 }
             }
         }
-        private SolidColorBrush _brushColor;
+        protected SolidColorBrush _brushColor;
         public SolidColorBrush BrushColor
         {
             get => _brushColor;
@@ -99,9 +93,9 @@ namespace MinesweeperWPF.Model
                 OnPropertyChanged(nameof(BrushColor));
             }
         }
-        private int red = 162;
-        private int green = 209;
-        private int blue = 73;
+        protected int red = 162;
+        protected int green = 209;
+        protected int blue = 73;
 
         public Particle()
         {
@@ -146,7 +140,7 @@ namespace MinesweeperWPF.Model
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        private void OnRendering(object sender, EventArgs e)
+        protected void OnRendering(object sender, EventArgs e)
         {
             double currentTime = stopwatch.Elapsed.TotalSeconds;
             double deltaTime = currentTime - lastFrameTime;
@@ -155,7 +149,7 @@ namespace MinesweeperWPF.Model
             Update(deltaTime);
         }
 
-        private void Update(double deltaTime)
+        protected virtual void Update(double deltaTime)
         {
             velocityY += gravity * deltaTime;
             PositionY += velocityY * deltaTime;
@@ -174,6 +168,13 @@ namespace MinesweeperWPF.Model
         {
             CompositionTarget.Rendering -= OnRendering; 
         }
+
+        protected void RaiseOnParticleExpired()
+        {
+            OnParticleExpired?.Invoke(this);
+        }
+
+        
     }
 
 }

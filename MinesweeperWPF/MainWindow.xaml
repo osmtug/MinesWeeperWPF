@@ -118,6 +118,35 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
+
+            <ItemsControl ItemsSource="{Binding Confettis}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Canvas />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.RenderTransform>
+                                <TransformGroup>
+                                    <TranslateTransform X="{Binding PositionX}" Y="{Binding PositionY}" />
+                                </TransformGroup>
+                            </Grid.RenderTransform>
+                            <Rectangle Fill="{Binding BrushColor}"
+                               Width="{Binding Size}"
+                               Height="{Binding SizeY}"
+                               >        
+                                <Rectangle.RenderTransform>
+                                    <TransformGroup>
+                                        <RotateTransform Angle="{Binding RotationAngle}" CenterX="{Binding CenterX}" CenterY="{Binding CenterY}"/>
+                                    </TransformGroup>
+                                </Rectangle.RenderTransform>
+                            </Rectangle>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
         </Canvas>
         <Grid Background="#4A752C" Grid.Row="0" Panel.ZIndex="2" MouseDown="GRDMain_MouseDown">
             <Grid.ColumnDefinitions>
@@ -249,7 +278,7 @@
                                                 </TextBlock.Style>
                                             </TextBlock>
 
-                                            <Image Source="bombe.png" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="5">
+                                            <Image Source="circle.png" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0" Opacity="0.3">
                                                 <Image.Style>
                                                     <Style TargetType="Image">
                                                         <Setter Property="Visibility" Value="Collapsed"/>
@@ -264,7 +293,7 @@
                                         </Grid>
                                     </Border>
                                     <Grid>
-                                        <Button Background="{Binding btnColor}"
+                                        <Button Background="{Binding btnColor}" BorderBrush="{Binding btnColor}"
                                         BorderThickness="0" MouseDown="Button_MouseDown" Click="Button_Click">
                                             <Button.Style>
                                                 <Style TargetType="Button">

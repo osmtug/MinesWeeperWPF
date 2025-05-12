@@ -1,18 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Controls;
+using System.Drawing;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Media;
-using System.Collections.ObjectModel;
-using System.Windows.Input;
-using System.Runtime.CompilerServices;
 using System.Windows.Threading;
-using System.Drawing;
-using System.Data.SqlTypes;
+using Color = System.Windows.Media.Color;
 
 namespace MinesweeperWPF.Model
 {
@@ -91,6 +84,20 @@ namespace MinesweeperWPF.Model
             FlagParticles.Remove(particle);
         }
 
+        public ObservableCollection<Confetti> Confettis { get; } = new();
+
+        public void AddConfettiParticle(Confetti particle)
+        {
+            particle.OnParticleExpired += RemoveConfettiParticle;
+            Confettis.Add(particle);
+        }
+
+        private void RemoveConfettiParticle(Particle particle)
+        {
+            particle.OnParticleExpired -= RemoveConfettiParticle;
+            Confettis.Remove((Confetti)particle);
+        }
+
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
@@ -125,6 +132,11 @@ namespace MinesweeperWPF.Model
 
         public void NewGame()
         {
+            Confettis.Clear();
+            //foreach ( Confetti confetti in Confettis)
+            //{
+            //    RemoveConfettiParticle(confetti);
+            //}
             mainWindow.setWindowSize();
 
             verifCells = false;
@@ -178,7 +190,7 @@ namespace MinesweeperWPF.Model
                 Random random = new Random();
                 indicePosition = random.Next(disponiblePostion.Count());
                 matrix[disponiblePostion[indicePosition][0]].cells[disponiblePostion[indicePosition][1]].Value = GridCell.BOMBE;
-
+                
                 disponiblePostion.RemoveAt(indicePosition);
             }
         }
@@ -263,7 +275,13 @@ namespace MinesweeperWPF.Model
 
                 if (c.Value == -1)
                 {
-                    GameOver();
+                    Random rand = new Random();
+                    c.color = getBombeColor(rand.Next(0, 7));
+                    for(int i = 0; i < 8; i++)
+                    {
+                        AddConfettiParticle(new Confetti(posX, posY, size/2, size/4, c.color));
+                    }
+                    GameOver(c, posX, posY, size);
                     return true;
                 }
                 else
@@ -292,10 +310,11 @@ namespace MinesweeperWPF.Model
             return false;
         }
 
-        private void GameOver()
+        private void GameOver(GridCell c, double posX, double posY, double size)
         {
-            discoverAllBomb();
             mainWindow.Shake();
+            CallFunctionWithDelay(c, posX, posY, size);
+            
             if (MessageBox.Show("Perdu ;( \n Veut tu rejouer", "Perdu", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
             {
                 NewGame();
@@ -312,18 +331,43 @@ namespace MinesweeperWPF.Model
             else { mainWindow.Close(); }
         }
 
-        private void discoverAllBomb()
+        private void discoverAllBomb(GridCell c, double posX, double posY, double size)
         {
-            for (int i = 0; i < gridSize; i++)
+
+            Task.Delay(100).Wait(); // Bloque le thread pendant 1 seconde
+
+            var nearestBombe = FindNearestBombe(c.column, c.row);
+            if (nearestBombe != null)
             {
-                for (int j = 0; j < gridSize; j++)
+                GridCell c2 = matrix[nearestBombe.Value.x].cells[nearestBombe.Value.y];
+                double newPosX = posX + (nearestBombe.Value.y - c.row) * size;
+                double newPosY = posY + (nearestBombe.Value.x - c.column) * size;
+                Random rand = new Random();
+                c2.color = getBombeColor(rand.Next(0, 8));
+                for (int i = 0; i < 8; i++)
                 {
-                    if (matrix[i].cells[j].Value == -1 && !matrix[i].cells[j].hasFlag)
-                    {
-                        matrix[i].cells[j].visible = false;
-                    }
+                    AddConfettiParticle(new Confetti(newPosX, newPosY, size / 2, size / 4, c2.color));
                 }
+                c2.visible = false;
+                CallFunctionWithDelay(c2, newPosX, newPosY, size);
             }
+
+
+        }
+
+        private void CallFunctionWithDelay(GridCell c, double posX, double posY, double size)
+        {
+            double min = 0;
+            double max = 0.5;
+            Random rand = new Random();
+            DispatcherTimer timer = new DispatcherTimer();
+            timer.Interval = TimeSpan.FromSeconds(min + rand.NextDouble() * (max - min));
+            timer.Tick += (sender, e) =>
+            {
+                timer.Stop(); // Arrête le timer
+                discoverAllBomb(c, posX, posY, size);
+            };
+            timer.Start();
         }
 
         public void ToogleFlag(GridCell cell, double posX = 0, double posY = 0, double size = 0)
@@ -357,6 +401,63 @@ namespace MinesweeperWPF.Model
             if (seconds >= 100) SecondsWith3Digits = seconds.ToString();
             else if (seconds >= 10) SecondsWith3Digits = "0" + seconds.ToString();
             else SecondsWith3Digits = "00" + seconds.ToString();
+        }
+
+        public (int x, int y)? FindNearestBombe(int startX, int startY)
+        {
+
+            var directions = new (int dx, int dy)[]
+            {
+            (0, 1), (1, 0), (0, -1), (-1, 0), // Droite, Bas, Gauche, Haut
+            (1, 1), (1, -1), (-1, -1), (-1, 1) // Diagonales
+            };
+
+            var visited = new HashSet<(int, int)>();
+            var queue = new Queue<(int x, int y)>();
+            queue.Enqueue((startX, startY));
+            visited.Add((startX, startY));
+
+            while (queue.Count > 0)
+            {
+                var (x, y) = queue.Dequeue();
+
+                foreach (var (dx, dy) in directions)
+                {
+                    int nx = x + dx;
+                    int ny = y + dy;
+
+                    if (nx >= 0 && nx < gridSize && ny >= 0 && ny < gridSize && !visited.Contains((nx, ny)))
+                    {
+                        visited.Add((nx, ny));
+                        GridCell cell = matrix[nx].cells[ny];
+
+                        if (cell.visible && cell.Value == -1 && !cell.hasFlag)
+                        {
+                            return (nx, ny);
+                        }
+
+                        queue.Enqueue((nx, ny));
+                    }
+                }
+            }
+
+            return null; // Aucun -1 trouvé
+        }
+
+        private SolidColorBrush getBombeColor(int val)
+        {
+            switch(val)
+            {
+                case 0: return new SolidColorBrush(Color.FromRgb(72, 133, 237));
+                case 1: return new SolidColorBrush(Color.FromRgb(0, 135, 68));
+                case 2: return new SolidColorBrush(Color.FromRgb(72, 230, 241));
+                case 3: return new SolidColorBrush(Color.FromRgb(182, 72, 242));
+                case 4: return new SolidColorBrush(Color.FromRgb(244, 132, 13));
+                case 5: return new SolidColorBrush(Color.FromRgb(219, 50, 54));
+                case 6: return new SolidColorBrush(Color.FromRgb(237, 68, 181));
+                case 7: return new SolidColorBrush(Color.FromRgb(244, 194, 13));
+            }
+            return null ;
         }
     }
 }

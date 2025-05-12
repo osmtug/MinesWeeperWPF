@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
+﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Media;
 
 namespace MinesweeperWPF.Model
@@ -15,7 +10,10 @@ namespace MinesweeperWPF.Model
         public bool visible
         {
             get => _visible;
-            set { _visible = value; OnPropertyChanged(); }
+            set { 
+                _visible = value;
+                OnPropertyChanged();
+            }
         }
         private int _value;
         public int Value
@@ -32,7 +30,12 @@ namespace MinesweeperWPF.Model
         }
         public int column { get; set; }
         public int row { get; set; }
-        public Brush? color { get; set; }
+        public Brush? _color { get; set; }
+        public Brush? color
+        {
+            get => _color;
+            set { _color = value; OnPropertyChanged(); }
+        }
         public Brush? btnColor { get; set; }
         public static Brush BTN_COLOR1 = new SolidColorBrush(Color.FromRgb(170, 215, 81));
         public static Brush BTN_COLOR2 = new SolidColorBrush(Color.FromRgb(162, 209, 73));
