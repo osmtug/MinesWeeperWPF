@@ -10,12 +10,14 @@
 
   <ItemGroup>
     <None Remove="bombe.png" />
+    <None Remove="circle.png" />
     <None Remove="flag.png" />
     <None Remove="time.png" />
   </ItemGroup>
 
   <ItemGroup>
     <Resource Include="bombe.png" />
+    <Resource Include="circle.png" />
     <Resource Include="flag.png" />
     <Resource Include="time.png" />
   </ItemGroup>
